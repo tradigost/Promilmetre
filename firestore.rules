@@ -1,0 +1,43 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // User Profile & Active Session document
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow list: if false; // Users cannot be enumerated
+      allow create, update: if isOwner(userId) && isValidId(userId)
+        && request.resource.data.weight is number
+        && request.resource.data.weight >= 20
+        && request.resource.data.weight <= 300
+        && (request.resource.data.gender in ['male', 'female']);
+      allow delete: if isOwner(userId) && isValidId(userId);
+
+      // Subcollection for past session archives
+      match /archives/{archiveId} {
+        allow get, list: if isOwner(userId) && isValidId(userId);
+        allow create, update: if isOwner(userId) && isValidId(userId) && isValidId(archiveId)
+          && request.resource.data.userId == userId
+          && request.resource.data.startTime is number
+          && request.resource.data.peakBac is number;
+        allow delete: if isOwner(userId) && isValidId(userId) && isValidId(archiveId);
+      }
+    }
+  }
+}

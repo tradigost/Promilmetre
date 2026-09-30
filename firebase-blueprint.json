@@ -1,0 +1,105 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile and optional active promil tracking session",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "User's display name",
+          "maxLength": 100
+        },
+        "email": {
+          "type": "string",
+          "description": "User's Google email"
+        },
+        "avatar": {
+          "type": "string",
+          "description": "User avatar emoji or photo URL",
+          "maxLength": 500
+        },
+        "gender": {
+          "type": "string",
+          "enum": ["male", "female"],
+          "description": "Biological gender for Widmark calculation"
+        },
+        "weight": {
+          "type": "number",
+          "description": "Weight in kg"
+        },
+        "stomach": {
+          "type": "string",
+          "enum": ["full", "medium", "empty"],
+          "description": "Stomach fullness state"
+        },
+        "session": {
+          "type": "object",
+          "description": "Currently active alcohol tracking session object or null"
+        }
+      },
+      "required": ["gender", "weight"]
+    },
+    "ArchivedSession": {
+      "title": "ArchivedSession",
+      "description": "Archived past drinking session record",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique session ID",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user UID",
+          "maxLength": 128
+        },
+        "date": {
+          "type": "string",
+          "description": "Human readable date string",
+          "maxLength": 64
+        },
+        "startTime": {
+          "type": "number",
+          "description": "Session start timestamp"
+        },
+        "endTime": {
+          "type": "number",
+          "description": "Session end timestamp"
+        },
+        "peakBac": {
+          "type": "number",
+          "description": "Peak BAC level reached"
+        },
+        "totalGrams": {
+          "type": "number",
+          "description": "Total pure alcohol grams consumed"
+        },
+        "drinkCount": {
+          "type": "number",
+          "description": "Total number of drinks"
+        },
+        "waterGlasses": {
+          "type": "number",
+          "description": "Total glasses of water logged"
+        },
+        "drinks": {
+          "type": "array",
+          "description": "List of drinks consumed in session"
+        }
+      },
+      "required": ["id", "userId", "startTime", "endTime", "peakBac", "totalGrams"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile with their active session"
+    },
+    "/users/{userId}/archives/{archiveId}": {
+      "schema": "ArchivedSession",
+      "description": "Past completed sessions for the user"
+    }
+  }
+}
